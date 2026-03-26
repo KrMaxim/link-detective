@@ -22,7 +22,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name='Link Detective_v1.3.1',
+    name='Link_Detective_v1.4',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
