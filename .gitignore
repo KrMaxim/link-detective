@@ -1,0 +1,36 @@
+# --- Среда разработки (PyCharm / VS Code) ---
+.idea/
+.vscode/
+*.swp
+*.bak
+
+# --- Виртуальное окружение (Python) ---
+venv/
+.venv/
+env/
+ENV/
+bin/
+lib/
+include/
+
+# --- Временные файлы сборки (PyInstaller) ---
+build/
+dist/
+*.spec
+
+# Исключение для актуального spec-файла (если хочешь оставить один)
+!Link Detective_v1.3.1.spec
+
+# --- Кэш Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# --- Системные файлы ---
+.DS_Store
+Thumbs.db
+
+# --- Файлы данных и логи (опционально) ---
+*.log
+# config.json  # Раскомментируй (удали #), если не хочешь делиться настройками
+Текстовый документ.txt
