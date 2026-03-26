@@ -1,0 +1,109 @@
+{
+    "Default": {
+        "STOP_WORDS": {
+            "Gambling": [
+                {
+                    "word": "vulkan",
+                    "active": true
+                },
+                {
+                    "word": "игровые автоматы",
+                    "active": true
+                },
+                {
+                    "word": "казино",
+                    "active": true
+                }
+            ],
+            "Adult": [
+                {
+                    "word": "порно",
+                    "active": true
+                },
+                {
+                    "word": "sex",
+                    "active": true
+                },
+                {
+                    "word": "porn",
+                    "active": true
+                }
+            ],
+            "Pharma": [
+                {
+                    "word": "наркотики",
+                    "active": true
+                },
+                {
+                    "word": "виагра",
+                    "active": true
+                }
+            ],
+            "Scraper/Aggregator": [
+                {
+                    "word": "websiteworth",
+                    "active": true
+                },
+                {
+                    "word": "website worth",
+                    "active": true
+                }
+            ],
+            "Marketing Trash": [
+                {
+                    "word": "earn money",
+                    "active": true
+                },
+                {
+                    "word": "make money online",
+                    "active": true
+                }
+            ]
+        },
+        "CONTEXT_WORDS": {
+            "777": {
+                "bad": [
+                    {
+                        "word": "слот",
+                        "active": true
+                    },
+                    {
+                        "word": "jackpot",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "boeing",
+                    "боинг"
+                ]
+            },
+            "ставки": {
+                "bad": [
+                    {
+                        "word": "спорт",
+                        "active": true
+                    },
+                    {
+                        "word": "букмекер",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "налог",
+                    "ипотека"
+                ]
+            },
+            "рулетка": {
+                "bad": [
+                    {
+                        "word": "ставка",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "измерительная"
+                ]
+            }
+        }
+    }
+}
