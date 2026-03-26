@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QTableWidget, QTableWidgetItem,
                              QFileDialog, QLabel, QProgressBar, QMenu,
                              QTextEdit, QSplitter, QComboBox, QInputDialog, QDialog,
-                             QLineEdit, QScrollArea, QCheckBox)
+                             QLineEdit, QScrollArea, QCheckBox, QSpinBox)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal, QRunnable, QThreadPool, QObject
 from PyQt6.QtGui import QColor
 
@@ -26,6 +26,7 @@ def wrap(words): return [{"word": w, "active": True} for w in words]
 
 DEFAULT_CONFIG = {
     "Default": {
+        "THREADS": 20,
         "STOP_WORDS": {
             'Gambling': wrap(
                 ['казино', 'игровые автоматы', 'casino', 'vulkan', 'фонбет', '1xbet', 'freebet', '1vin', 'winline']),
@@ -51,6 +52,51 @@ DEFAULT_CONFIG = {
         }
     }
 }
+
+# --- СТИЛЬ ТЕМНОЙ ТЕМЫ ---
+DARK_STYLE = """
+QWidget {
+    background-color: #2b2b2b;
+    color: #d4d4d4;
+}
+QTableWidget {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    gridline-color: #444444;
+}
+QHeaderView::section {
+    background-color: #3c3c3c;
+    color: white;
+    border: 1px solid #2b2b2b;
+}
+QPushButton {
+    background-color: #3c3c3c;
+    color: white;
+    border: 1px solid #555;
+    padding: 5px 15px;
+}
+QPushButton:hover {
+    background-color: #4c4c4c;
+}
+QPushButton:disabled {
+    background-color: #2b2b2b;
+    color: #777;
+}
+QLineEdit, QComboBox, QSpinBox, QTextEdit {
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #555;
+}
+QProgressBar {
+    border: 1px solid #555;
+    background-color: #1e1e1e;
+    text-align: center;
+    color: white;
+}
+QProgressBar::chunk {
+    background-color: #0D47A1;
+}
+"""
 
 # Расширенные маркеры пустых поисков и форумных исключений
 EMPTY_MARKERS = [
@@ -78,7 +124,6 @@ def save_settings(config):
 
 # --- 2. ЛОГИКА АНАЛИЗА ---
 def clean_page_garbage(soup):
-    # Убран тег 'form', чтобы не удалять контент на старых сайтах
     for tag in soup.find_all(['input', 'textarea', 'button', 'nav', 'footer', 'header']):
         tag.decompose()
     return soup
@@ -165,99 +210,40 @@ def check_aggressive_aggregator(soup, url):
 def scan_logic(html_content, url, stop_words, context_words, is_search=False, search_term=None):
     soup = BeautifulSoup(html_content, 'html.parser')
 
-    # 1. Вырезаем технический мусор, который не должен анализироваться
     for noise in soup.find_all(['nav', 'footer', 'header', 'script', 'style', 'aside', 'form', 'title', 'meta']):
         noise.decompose()
 
-    # 2. РАДИКАЛЬНАЯ ОЧИСТКА СЛЕДОВ ПОИСКА
     if is_search and search_term:
-        # Декодируем запрос (из %D0%B8... в нормальные слова)
         raw_q = search_term.split('=')[-1] if '=' in search_term else search_term
         decoded_query = urllib.parse.unquote(raw_q).lower().strip()
-
-        # Собираем список слов для удаления (фраза целиком + отдельные слова)
         to_erase = [decoded_query]
         if ' ' in decoded_query:
             to_erase.extend([w for w in decoded_query.split() if len(w) > 3])
 
-        # Сначала удаляем все blocks, где эти слова встречаются (заголовки, крошки)
         for term in to_erase:
             for element in soup.find_all(string=re.compile(re.escape(term), re.I)):
                 parent = element.parent
                 if parent and parent.name not in ['body', 'html']:
                     parent.decompose()
 
-        # Получаем текст
         text_full = soup.get_text(separator=' ', strip=True).lower()
-
-        # ФИНАЛЬНЫЙ УДАР: Вырезаем сами слова из итоговой строки через regex
-        # Это уберет фразы типа "вы искали игровые автоматы", если они выжили
         for term in to_erase:
             text_full = re.sub(rf"{re.escape(term)}", " [CLEANED] ", text_full)
     else:
         text_full = soup.get_text(separator=' ', strip=True).lower()
 
-    # 3. ПРОВЕРКА НА ПУСТОТУ (WordPress / Novosti-avto)
     is_search_url = any(x in url.lower() for x in ['search', 'query', 'poisk', 's=']) or is_search
-
-    # Добавь 'результаты поиска' и 'вы искали' в свой список EMPTY_MARKERS в начале конфига!
     search_empty = is_search_url and (
             not text_full.strip() or
             any(m in text_full for m in EMPTY_MARKERS) or
-            len(text_full) < 150  # Если после очистки текста почти нет - это пустой шаблон
+            len(text_full) < 150
     )
 
     if search_empty:
         return set(), set(), "[Search: No Results or Cleared Header]"
 
-    # 3. ПРОВЕРКА НА ПУСТОТУ (Важно: 'результат поиска для' теперь в EMPTY_MARKERS)
-    # Если после удаления поискового слова на странице ничего не осталось или есть маркеры пустоты
-    is_search_url = any(x in url.lower() for x in ['search', 'query', 'poisk', 's=']) or is_search
-
-    # Расширенный список для детекции пустых страниц WordPress/Elementor
-    search_empty = is_search_url and (
-            not text_full or
-            any(m in text_full for m in EMPTY_MARKERS) or
-            len(text_full) < 50  # Если осталось слишком мало текста после очистки - это пустой шаблон
-    )
-
-    if search_empty:
-        return set(), set(), "[Search: No Results]"
-
-        # --- Дальше идет стандартная логика (Trust, PBN, Stop-Words) ---
-        # ... (оставшаяся часть функции без изменений)
-
-        # 2. Очищаем текстовое содержимое от самого поискового слова
-        # Это уберет 'vulkan' из фраз типа "Вы искали: vulkan"
-        raw_text = soup.get_text(separator=' ', strip=True).lower()
-        search_term_clean = search_term.lower().strip()
-        text_full = raw_text.replace(search_term_clean, "[CLEANED_TERM]")
-    else:
-        text_full = soup.get_text(separator=' ', strip=True).lower()
-
-    # Убран тег 'form', так как на старых сайтах внутри форм лежит основной контент выдачи
-    for noise in soup.find_all(['nav', 'footer', 'header', 'script', 'style', 'aside']):
-        noise.decompose()
-
     if is_search and search_term:
-        for h1 in soup.find_all('h1'): h1.decompose()
-        for search_msg in soup.find_all(text=re.compile(r'результаты поиска|по запросу|search results', re.I)):
-            parent = search_msg.parent
-            if parent: parent.decompose()
-
-    text_full = soup.get_text(separator=' ', strip=True).lower()
-
-    # Логика обхода ложных срабатываний (форумы со словами "исключены из поиска" и т.д.)
-    is_search_url = 'search' in url.lower() or 'query' in url.lower() or 'poisk' in url.lower() or 's=' in url.lower() or is_search
-    search_empty = is_search_url and any(m in text_full for m in EMPTY_MARKERS)
-
-    if is_search and search_term:
-        # Удаляем само поисковое слово из текста, чтобы оно не триггерило стоп-лист
         text_full = text_full.replace(search_term.lower(), "")
-
-    # Если страница является результатом пустого поиска или исключенных слов, сразу прерываем проверку
-    if search_empty:
-        return set(), set(), "[Search: No Results or Excluded Words]"
 
     found_cats, found_words, snippets = set(), set(), []
     parsed = urlparse(url)
@@ -276,42 +262,32 @@ def scan_logic(html_content, url, stop_words, context_words, is_search=False, se
     arabic_chars = re.findall(r'[\u0600-\u06FF]', text_full)
     has_arabic = len(arabic_chars) > 10
 
-    # --- 1. ПРОВЕРКА ПО STOP_WORDS ---
     for cat, items in stop_words.items():
         if trust_score >= 5 and cat == 'Scraper/Aggregator': continue
         for item in items:
             if not item.get("active"): continue
             w = item["word"].lower()
             if re.search(rf"\b{re.escape(w)}\b", text_full, re.UNICODE):
-
-                # Проверка контекста: если стоп-слово имеет двойной смысл
                 if w in context_words:
                     ctx = context_words[w]
-                    # Ищем алиби (good слова)
                     alibi_found = any(re.search(rf"\b{re.escape(good.lower())}\b", text_full, re.UNICODE)
                                       for good in ctx.get('good', []))
                     if alibi_found:
-                        continue  # Алиби найдено, пропускаем слово (сайт спасен)
-
+                        continue
                 found_cats.add(cat)
                 found_words.add(w)
                 idx = text_full.find(w)
                 snippets.append(f"[{w}]: ...{text_full[max(0, idx - 60):idx + 60]}...")
 
-    # --- 2. ПРОВЕРКА ПО CONTEXT_WORDS (Скрытые триггеры) ---
     for trigger_word, ctx in context_words.items():
         w = trigger_word.lower()
         if w in found_words:
-            continue  # Слово уже обработано в блоке STOP_WORDS
-
+            continue
         if re.search(rf"\b{re.escape(w)}\b", text_full, re.UNICODE):
-            # Ищем алиби (good слова)
             alibi_found = any(re.search(rf"\b{re.escape(good.lower())}\b", text_full, re.UNICODE)
                               for good in ctx.get('good', []))
             if alibi_found:
-                continue  # Алиби найдено, пропускаем
-
-            # Ищем плохие слова (улики)
+                continue
             bad_found = None
             for bad_item in ctx.get('bad', []):
                 if isinstance(bad_item, dict):
@@ -323,8 +299,6 @@ def scan_logic(html_content, url, stop_words, context_words, is_search=False, se
                 if re.search(rf"\b{re.escape(bw)}\b", text_full, re.UNICODE):
                     bad_found = bw
                     break
-
-            # Вердикт по контексту
             if bad_found:
                 found_cats.add("Context Warning")
                 found_words.add(w)
@@ -336,7 +310,6 @@ def scan_logic(html_content, url, stop_words, context_words, is_search=False, se
                 idx = text_full.find(w)
                 snippets.append(f"[{w} (No Alibi)]: ...{text_full[max(0, idx - 60):idx + 60]}...")
 
-    # --- ДОПОЛНИТЕЛЬНЫЕ ПРОВЕРКИ ---
     if spam_score >= 4:
         found_cats.add("SEO/PBN")
         found_words.add(f"Score: {spam_score}")
@@ -372,7 +345,6 @@ class CheckTask(QRunnable):
         }
 
     def prepare_search_query(self, query):
-        """Решает проблему 'too common': если слово < 4 символов, добавляем *"""
         if len(query) < 4:
             return f"{query}*"
         return query
@@ -427,7 +399,6 @@ class CheckTask(QRunnable):
                 search_targets = []
                 dynamic_forms = self.extract_search_forms(soup, final_url)
 
-                # Подготовка безопасных ключевиков
                 safe_queries = [self.prepare_search_query(q) for q in self.search_queries]
 
                 for df in dynamic_forms:
@@ -475,14 +446,14 @@ class AnalysisWorker(QThread):
     progress = pyqtSignal(int, dict)
     finished = pyqtSignal(bool)
 
-    def __init__(self, tasks, stop_words, context_words):
+    def __init__(self, tasks, stop_words, context_words, max_threads=20):
         super().__init__()
         self.tasks = tasks
         self.stop_words = stop_words
         self.context_words = context_words
         self.is_running = True
         self.pool = QThreadPool()
-        self.pool.setMaxThreadCount(20)
+        self.pool.setMaxThreadCount(max_threads)
 
     def stop(self):
         self.is_running = False
@@ -513,6 +484,19 @@ class WordEditorDialog(QDialog):
         self.setWindowTitle(f"Настройка: {profile_name}")
         self.resize(550, 600)
         layout = QVBoxLayout(self)
+
+        # --- ДОБАВЛЕНА НАСТРОЙКА ПОТОКОВ ---
+        thread_lay = QHBoxLayout()
+        thread_lay.addWidget(QLabel("Количество потоков:"))
+        self.thread_spin = QSpinBox()
+        self.thread_spin.setRange(1, 100)
+        self.thread_spin.setValue(self.settings[self.profile].get("THREADS", 20))
+        self.thread_spin.valueChanged.connect(self.update_threads)
+        thread_lay.addWidget(self.thread_spin)
+        thread_lay.addStretch()
+        layout.addLayout(thread_lay)
+        # -----------------------------------
+
         self.mode_sel = QComboBox()
         self.mode_sel.addItems(["STOP_WORDS", "CONTEXT_WORDS"])
         self.mode_sel.currentTextChanged.connect(self.refresh_cats)
@@ -543,6 +527,10 @@ class WordEditorDialog(QDialog):
         add_box.addWidget(btn_w)
         layout.addLayout(add_box)
         self.refresh_cats()
+
+    def update_threads(self, val):
+        self.settings[self.profile]["THREADS"] = val
+        save_settings(self.settings)
 
     def refresh_cats(self):
         m = self.mode_sel.currentText()
@@ -603,7 +591,8 @@ class LinkDetectiveGUI(QMainWindow):
     def __init__(self):
         super().__init__()
         self.settings, self.current_profile = load_settings(), "Default"
-        self.setWindowTitle("LINK DETECTIVE V1.3.1 - MULTI-THREADED")
+        self.is_dark_theme = False  # Флаг состояния темы
+        self.setWindowTitle("LINK DETECTIVE V1.4")
         self.resize(1350, 850)
         self.loaded_urls = []
         self.completed_count = 0
@@ -636,11 +625,16 @@ class LinkDetectiveGUI(QMainWindow):
         r1.addWidget(self.combo_p)
         r1.addWidget(QPushButton("⚙", clicked=self.open_editor))
         r1.addStretch()
+
+        # --- КНОПКА ПЕРЕКЛЮЧЕНИЯ ТЕМЫ ---
+        self.btn_theme = QPushButton("🌙 Темная тема", clicked=self.toggle_theme)
+        r1.addWidget(self.btn_theme)
+        # ---------------------------------
+
         top_v.addLayout(r1)
         r2 = QHBoxLayout()
         r2.addWidget(QPushButton("Загрузить список", clicked=self.load_file))
 
-        # --- НОВАЯ КНОПКА Majestic Clipboard ---
         self.btn_majestic = QPushButton("Majestic Clipboard", clicked=self.load_majestic_clipboard)
         r2.addWidget(self.btn_majestic)
 
@@ -652,7 +646,6 @@ class LinkDetectiveGUI(QMainWindow):
         main_layout.addWidget(self.top_p)
         self.splitter = QSplitter(Qt.Orientation.Horizontal)
 
-        # --- ТАБЛИЦА РАСШИРЕНА ДО 8 КОЛОНОК ---
         self.table = QTableWidget(0, 8)
         self.table.setHorizontalHeaderLabels(["URL", "Результат", "Слова", "Сниппет", "Проверка", "TF", "CF", "TR"])
         self.table.itemSelectionChanged.connect(self.update_snip)
@@ -677,6 +670,15 @@ class LinkDetectiveGUI(QMainWindow):
         main_layout.addWidget(self.pbar)
         self.table.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         self.table.customContextMenuRequested.connect(self.show_menu)
+
+    def toggle_theme(self):
+        self.is_dark_theme = not self.is_dark_theme
+        if self.is_dark_theme:
+            self.setStyleSheet(DARK_STYLE)
+            self.btn_theme.setText("☀️ Светлая тема")
+        else:
+            self.setStyleSheet("")
+            self.btn_theme.setText("🌙 Темная тема")
 
     def show_menu(self, pos):
         item = self.table.itemAt(pos)
@@ -720,7 +722,11 @@ class LinkDetectiveGUI(QMainWindow):
         self.btn_exp.setEnabled(False)
         self.btn_stop.setText("STOP")
         p = self.settings[self.combo_p.currentText()]
-        self.worker = AnalysisWorker(tasks_to_run, p["STOP_WORDS"], p["CONTEXT_WORDS"])
+
+        # Забираем количество потоков из настроек (по умолчанию 20, если их там нет)
+        thread_count = p.get("THREADS", 20)
+
+        self.worker = AnalysisWorker(tasks_to_run, p["STOP_WORDS"], p["CONTEXT_WORDS"], thread_count)
         self.worker.progress.connect(self.fill)
         self.worker.finished.connect(self.on_fin)
         self.worker.start()
@@ -763,7 +769,6 @@ class LinkDetectiveGUI(QMainWindow):
             rows = []
             for r in range(self.table.rowCount()):
                 row_data = []
-                # Экспортируем теперь 8 колонок
                 for c in range(8):
                     item = self.table.item(r, c)
                     row_data.append(item.text() if item else "")
@@ -804,7 +809,6 @@ class LinkDetectiveGUI(QMainWindow):
 
             for i, u in enumerate(self.loaded_urls):
                 self.table.setItem(i, 0, QTableWidgetItem(u))
-                # Заполняем прочерками оставшиеся ячейки
                 for c in range(1, 8):
                     self.table.setItem(i, c, QTableWidgetItem("-"))
 
@@ -823,9 +827,6 @@ class LinkDetectiveGUI(QMainWindow):
 
         # Регулярное выражение для поиска URL
         url_pattern = re.compile(r'https?://[^\s\t]+')
-        # Регулярное выражение для поиска чисел (TF и CF)
-        # Ищем группы цифр, которые стоят отдельно
-        digit_pattern = re.compile(r'\b\d{1,3}\b')
 
         for line in lines:
             # Пропускаем строку заголовков и технические строки
@@ -838,30 +839,61 @@ class LinkDetectiveGUI(QMainWindow):
                 continue
 
             # Берем первый найденный URL (обычно это Source URL)
-            # Если в строке есть Redirect URL, он будет вторым, но нам нужен источник
             target_url = found_urls[0].strip()
 
-            # 2. Пытаемся вытащить TF и CF
-            # В Majestic TSV числа обычно идут после URL или в конце
-            # Мы просто разобьем строку по табуляции и поищем колонки с числами
-            cols = line.split('\t')
+            # 2. Правильно извлекаем TF и CF
             tf, cf = 0, 0
 
-            # Ищем цифры в колонках. Обычно в выгрузке TF и CF стоят рядом.
-            # Для надежности: ищем колонки, где только цифры
-            numbers = []
-            for col in cols:
-                clean_col = col.strip()
-                if clean_col.isdigit():
-                    numbers.append(int(clean_col))
+            # Разбиваем строку на колонки. Majestic использует табуляцию.
+            # Если табуляции нет, используем двойные пробелы как разделитель.
+            if '\t' in line:
+                cols = [c.strip() for c in line.split('\t')]
+            else:
+                cols = [c.strip() for c in re.split(r'\s{2,}', line)]
 
-            # В дампе Majestic TF и CF обычно первые два числа после URL или в наборе данных
-            if len(numbers) >= 2:
-                tf = numbers[0]
-                cf = numbers[1]
-            elif len(numbers) == 1:
-                tf = numbers[0]
+            # Находим индекс колонки с нашим целевым URL
+            url_idx = -1
+            for i, c in enumerate(cols):
+                if target_url in c:
+                    url_idx = i
+                    break
 
+            if url_idx != -1:
+                # В стандартной выгрузке Majestic колонки идут так:
+                # [url_idx]   : Source URL
+                # [url_idx+1] : Source Anchor Text
+                # [url_idx+2] : Link Type
+                # [url_idx+3] : Source Trust Flow
+                # [url_idx+4] : Source Citation Flow
+
+                try:
+                    # Пробуем взять данные по стандартному смещению
+                    if url_idx + 4 < len(cols):
+                        tf_str = cols[url_idx + 3]
+                        cf_str = cols[url_idx + 4]
+
+                        if tf_str.isdigit() and cf_str.isdigit():
+                            tf = int(tf_str)
+                            cf = int(cf_str)
+                        else:
+                            raise ValueError
+                    else:
+                        raise ValueError
+                except ValueError:
+                    # Резервный метод: если структура смещена, ищем первые цифровые колонки СТРОГО ПОСЛЕ URL
+                    numbers_after_url = []
+                    for c in cols[url_idx + 1:]:
+                        clean_c = c.replace(',', '').strip()
+                        if clean_c.isdigit():
+                            numbers_after_url.append(int(clean_c))
+
+                    if len(numbers_after_url) >= 2:
+                        tf = numbers_after_url[0]
+                        cf = numbers_after_url[1]
+                    elif len(numbers_after_url) == 1:
+                        tf = numbers_after_url[0]
+
+            # Считаем Trust Ratio
             tr = round(tf / cf, 2) if cf > 0 else 0.0
 
             parsed_data.append({
