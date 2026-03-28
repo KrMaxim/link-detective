@@ -5,6 +5,10 @@ on:
     tags:
       - 'v*' # Запускается на любой тег, начинающийся с v
 
+# Добавляем права на запись, чтобы исправить ошибку "Resource not accessible"
+permissions:
+  contents: write
+
 jobs:
   build:
     strategy:
@@ -13,10 +17,8 @@ jobs:
         include:
           - os: windows-latest
             artifact_name: LinkDetective_v1.5_Win.exe
-            asset_name: LinkDetective_v1.5_Win.exe
           - os: macos-latest
             artifact_name: LinkDetective_v1.5_Mac
-            asset_name: LinkDetective_v1.5_Mac.zip # На Mac лучше архивировать
     runs-on: ${{ matrix.os }}
     
     env:
@@ -33,6 +35,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        python -m pip install --upgrade pip
         pip install PyQt6 requests pandas beautifulsoup4 pyinstaller lxml openpyxl
 
     - name: Build Application
@@ -41,7 +44,7 @@ jobs:
           python -m PyInstaller --noconsole --onefile --name "LinkDetective_v1.5_Win" link_detective.py
         else
           python -m PyInstaller --noconsole --windowed --onefile --name "LinkDetective_v1.5_Mac" link_detective.py
-          # Архивируем .app для Mac, иначе он потеряет права доступа
+          # Архивируем .app для Mac, чтобы сохранить права доступа
           cd dist && zip -r ../LinkDetective_v1.5_Mac.zip LinkDetective_v1.5_Mac.app && cd ..
         fi
       shell: bash
