@@ -3,18 +3,24 @@ name: Build and Release v1.5
 on:
   push:
     tags:
-      - 'v1.5' # Сборка запустится только когда мы поставим метку v1.5
+      - 'v*' # Запускается на любой тег, начинающийся с v
 
 jobs:
   build:
     strategy:
+      fail-fast: false # Чтобы падение Mac не отменяло сборку Windows
       matrix:
         include:
           - os: windows-latest
             artifact_name: LinkDetective_v1.5_Win.exe
+            asset_name: LinkDetective_v1.5_Win.exe
           - os: macos-latest
             artifact_name: LinkDetective_v1.5_Mac
+            asset_name: LinkDetective_v1.5_Mac.zip # На Mac лучше архивировать
     runs-on: ${{ matrix.os }}
+    
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true # Убираем предупреждения Node.js
 
     steps:
     - name: Checkout code
@@ -35,14 +41,16 @@ jobs:
           python -m PyInstaller --noconsole --onefile --name "LinkDetective_v1.5_Win" link_detective.py
         else
           python -m PyInstaller --noconsole --windowed --onefile --name "LinkDetective_v1.5_Mac" link_detective.py
+          # Архивируем .app для Mac, иначе он потеряет права доступа
+          cd dist && zip -r ../LinkDetective_v1.5_Mac.zip LinkDetective_v1.5_Mac.app && cd ..
         fi
       shell: bash
 
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
+    - name: Upload to Release
+      uses: softprops/action-gh-release@v2
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: dist/${{ matrix.artifact_name }}*
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+        files: |
+          dist/LinkDetective_v1.5_Win.exe
+          LinkDetective_v1.5_Mac.zip
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
