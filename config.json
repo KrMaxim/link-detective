@@ -1,0 +1,539 @@
+{
+    "Default": {
+        "STOP_WORDS": {
+            "Gambling": [
+                {
+                    "word": "vulkan",
+                    "active": true
+                },
+                {
+                    "word": "игровые автоматы",
+                    "active": true
+                },
+                {
+                    "word": "казино",
+                    "active": true
+                }
+            ],
+            "Adult": [
+                {
+                    "word": "порно",
+                    "active": true
+                },
+                {
+                    "word": "sex",
+                    "active": true
+                },
+                {
+                    "word": "porn",
+                    "active": true
+                }
+            ],
+            "Pharma": [
+                {
+                    "word": "наркотики",
+                    "active": true
+                },
+                {
+                    "word": "виагра",
+                    "active": true
+                }
+            ],
+            "Scraper/Aggregator": [
+                {
+                    "word": "websiteworth",
+                    "active": true
+                },
+                {
+                    "word": "website worth",
+                    "active": true
+                }
+            ],
+            "Marketing Trash": [
+                {
+                    "word": "earn money",
+                    "active": true
+                },
+                {
+                    "word": "make money online",
+                    "active": true
+                }
+            ]
+        },
+        "CONTEXT_WORDS": {
+            "777": {
+                "bad": [
+                    {
+                        "word": "слот",
+                        "active": true
+                    },
+                    {
+                        "word": "jackpot",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "boeing",
+                    "боинг"
+                ]
+            },
+            "ставки": {
+                "bad": [
+                    {
+                        "word": "спорт",
+                        "active": true
+                    },
+                    {
+                        "word": "букмекер",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "налог",
+                    "ипотека"
+                ]
+            },
+            "рулетка": {
+                "bad": [
+                    {
+                        "word": "ставка",
+                        "active": true
+                    }
+                ],
+                "good": [
+                    "измерительная"
+                ]
+            }
+        },
+        "THREADS": 20,
+        "USE_PROXY": false,
+        "PROXY_HOST": "",
+        "PROXY_PORT": "",
+        "PROXY_USER": "",
+        "PROXY_PASS": "",
+        "CATEGORIES": {
+            "Gambling": {
+                "color": "#CC7A00",
+                "stop_words": [
+                    {
+                        "word": "казино",
+                        "active": true
+                    },
+                    {
+                        "word": "игровые автоматы",
+                        "active": true
+                    },
+                    {
+                        "word": "casino",
+                        "active": true
+                    },
+                    {
+                        "word": "vulkan",
+                        "active": true
+                    },
+                    {
+                        "word": "фонбет",
+                        "active": true
+                    },
+                    {
+                        "word": "1xbet",
+                        "active": true
+                    },
+                    {
+                        "word": "freebet",
+                        "active": true
+                    },
+                    {
+                        "word": "1vin",
+                        "active": true
+                    },
+                    {
+                        "word": "winline",
+                        "active": true
+                    }
+                ],
+                "context_words": {
+                    "777": {
+                        "bad": [
+                            {
+                                "word": "слот",
+                                "active": true
+                            },
+                            {
+                                "word": "jackpot",
+                                "active": true
+                            },
+                            {
+                                "word": "вулкан",
+                                "active": true
+                            },
+                            {
+                                "word": "играть",
+                                "active": true
+                            },
+                            {
+                                "word": "выигрыш",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "boeing",
+                                "active": true
+                            },
+                            {
+                                "word": "боинг",
+                                "active": true
+                            }
+                        ]
+                    },
+                    "ставки": {
+                        "bad": [
+                            {
+                                "word": "спорт",
+                                "active": true
+                            },
+                            {
+                                "word": "прогноз",
+                                "active": true
+                            },
+                            {
+                                "word": "букмекер",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "налог",
+                                "active": true
+                            },
+                            {
+                                "word": "ипотека",
+                                "active": true
+                            },
+                            {
+                                "word": "ремонт",
+                                "active": true
+                            }
+                        ]
+                    },
+                    "слот": {
+                        "bad": [
+                            {
+                                "word": "играть",
+                                "active": true
+                            },
+                            {
+                                "word": "джекпот",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "память",
+                                "active": true
+                            },
+                            {
+                                "word": "плата",
+                                "active": true
+                            }
+                        ]
+                    },
+                    "рулетка": {
+                        "bad": [
+                            {
+                                "word": "зеро",
+                                "active": true
+                            },
+                            {
+                                "word": "ставка",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "измерительная",
+                                "active": true
+                            },
+                            {
+                                "word": "строительная",
+                                "active": true
+                            }
+                        ]
+                    }
+                }
+            },
+            "Adult": {
+                "color": "#8B0000",
+                "stop_words": [
+                    {
+                        "word": "порно",
+                        "active": true
+                    },
+                    {
+                        "word": "секс",
+                        "active": true
+                    },
+                    {
+                        "word": "вебкам",
+                        "active": true
+                    },
+                    {
+                        "word": "porn",
+                        "active": true
+                    },
+                    {
+                        "word": "sex",
+                        "active": true
+                    },
+                    {
+                        "word": "xxx",
+                        "active": true
+                    },
+                    {
+                        "word": "bdsm",
+                        "active": true
+                    },
+                    {
+                        "word": "проститутки",
+                        "active": true
+                    },
+                    {
+                        "word": "webcam",
+                        "active": true
+                    },
+                    {
+                        "word": "stripchat",
+                        "active": true
+                    }
+                ],
+                "context_words": {
+                    "знакомства": {
+                        "bad": [
+                            {
+                                "word": "интим",
+                                "active": true
+                            },
+                            {
+                                "word": "секс",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "объявления",
+                                "active": true
+                            },
+                            {
+                                "word": "городские",
+                                "active": true
+                            }
+                        ]
+                    }
+                }
+            },
+            "Pharma": {
+                "color": "#E65100",
+                "stop_words": [
+                    {
+                        "word": "наркотики",
+                        "active": true
+                    },
+                    {
+                        "word": "виагра",
+                        "active": true
+                    },
+                    {
+                        "word": "бад",
+                        "active": true
+                    },
+                    {
+                        "word": "drugs",
+                        "active": true
+                    },
+                    {
+                        "word": "pills",
+                        "active": true
+                    },
+                    {
+                        "word": "viagra",
+                        "active": true
+                    },
+                    {
+                        "word": "cialis",
+                        "active": true
+                    },
+                    {
+                        "word": "сиалис",
+                        "active": true
+                    },
+                    {
+                        "word": "бады",
+                        "active": true
+                    }
+                ],
+                "context_words": {}
+            },
+            "Scraper/Aggregator": {
+                "color": "#6100AB",
+                "stop_words": [
+                    {
+                        "word": "website worth",
+                        "active": true
+                    },
+                    {
+                        "word": "domain value",
+                        "active": true
+                    },
+                    {
+                        "word": "estimated worth",
+                        "active": true
+                    },
+                    {
+                        "word": "site cost",
+                        "active": true
+                    },
+                    {
+                        "word": "websiteworth",
+                        "active": true
+                    },
+                    {
+                        "word": "most visited web pages",
+                        "active": true
+                    },
+                    {
+                        "word": "world's most",
+                        "active": true
+                    }
+                ],
+                "context_words": {}
+            },
+            "Marketing Trash": {
+                "color": "#FBC02D",
+                "stop_words": [
+                    {
+                        "word": "make money online",
+                        "active": true
+                    },
+                    {
+                        "word": "passive income",
+                        "active": true
+                    },
+                    {
+                        "word": "list building",
+                        "active": true
+                    },
+                    {
+                        "word": "earn money",
+                        "active": true
+                    }
+                ],
+                "context_words": {}
+            },
+            "SEO/PBN": {
+                "color": "#6100AB",
+                "stop_words": [
+                    {
+                        "word": "guest post",
+                        "active": true
+                    },
+                    {
+                        "word": "write for us",
+                        "active": true
+                    },
+                    {
+                        "word": "submit article",
+                        "active": true
+                    },
+                    {
+                        "word": "sponsored post",
+                        "active": true
+                    },
+                    {
+                        "word": "link directory",
+                        "active": true
+                    },
+                    {
+                        "word": "seo services",
+                        "active": true
+                    }
+                ],
+                "context_words": {
+                    "seo": {
+                        "bad": [
+                            {
+                                "word": "submit",
+                                "active": true
+                            },
+                            {
+                                "word": "directory",
+                                "active": true
+                            },
+                            {
+                                "word": "rank",
+                                "active": true
+                            },
+                            {
+                                "word": "post",
+                                "active": true
+                            }
+                        ],
+                        "good": [
+                            {
+                                "word": "optimization",
+                                "active": true
+                            }
+                        ]
+                    }
+                }
+            },
+            "Chinese Content": {
+                "color": "#FF69B4",
+                "stop_words": [],
+                "context_words": {}
+            },
+            "Arabic Content": {
+                "color": "#FF69B4",
+                "stop_words": [],
+                "context_words": {}
+            },
+            "Clean": {
+                "color": "#004400",
+                "stop_words": [],
+                "context_words": {}
+            }
+        },
+        "CONTEXT_WARNING_ACTIVE": false,
+        "CONTEXT_WARNING_COLOR": "#FF8C00",
+        "PRIORITY": [
+            "SEO/PBN",
+            "Scraper/Aggregator",
+            "Adult",
+            "Pharma",
+            "Gambling",
+            "Marketing Trash",
+            "Chinese Content",
+            "Arabic Content",
+            "Clean"
+        ],
+        "EMPTY_MARKERS": [
+            "ничего не найдено",
+            "not found",
+            "извините",
+            "no results",
+            "0 результатов",
+            "0 results",
+            "результатов нет",
+            "исключены из поиска",
+            "слишком часто используются",
+            "либо слишком длинные, либо слишком короткие",
+            "слишком длинные",
+            "слишком короткие",
+            "too common",
+            "ignored",
+            "были проигнорированы",
+            "слишком употребимыми",
+            "найдено записей: 0"
+        ]
+    }
+}
