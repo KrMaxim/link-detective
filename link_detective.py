@@ -89,7 +89,7 @@ DEFAULT_CONFIG = {
                 "context_words": {}
             },
             "SEO/PBN": {
-                "color": "6100AB",
+                "color": "#6100AB",
                 "stop_words": wrap(
                     ['guest post', 'write for us', 'submit article', 'sponsored post', 'link directory',
                      'seo services']),
