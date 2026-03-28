@@ -1,0 +1,48 @@
+name: Build and Release v1.5
+
+on:
+  push:
+    tags:
+      - 'v1.5' # Сборка запустится только когда мы поставим метку v1.5
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            artifact_name: LinkDetective_v1.5_Win.exe
+          - os: macos-latest
+            artifact_name: LinkDetective_v1.5_Mac
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        pip install PyQt6 requests pandas beautifulsoup4 pyinstaller lxml openpyxl
+
+    - name: Build Application
+      run: |
+        if [ "${{ matrix.os }}" == "windows-latest" ]; then
+          python -m PyInstaller --noconsole --onefile --name "LinkDetective_v1.5_Win" link_detective.py
+        else
+          python -m PyInstaller --noconsole --windowed --onefile --name "LinkDetective_v1.5_Mac" link_detective.py
+        fi
+      shell: bash
+
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: dist/${{ matrix.artifact_name }}*
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true

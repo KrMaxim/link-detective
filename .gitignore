@@ -18,7 +18,7 @@ build/
 dist/
 *.spec
 # Исключаем старые спецификации, чтобы не мусорить в репозитории
-!link_detective.spec 
+!Link_Detective_v1.4.spec
 
 # --- Кэш Python ---
 __pycache__/
